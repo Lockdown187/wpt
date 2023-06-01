@@ -44,9 +44,18 @@ navigate back to Page A, assuming Page A is (or isn't) in BFCache),
 as in [events.html](./events.html) and `runEventTest()` in
 [resources/helper.sub.js](resources/helper.sub.js).
 
-# Asserting PRECONDITION_FAILED for unexpected BFCache eligibility
+# Asserting PRECONDITION_FAILED/NOTRUN for unexpected BFCache eligibility
 
-To distinguish failures due to unexpected BFCache ineligibility (which might be
-acceptable due to different BFCache eligibility criteria across browsers),
-`assert_bfcached()` and `assert_not_bfcached()` results in
-`PRECONDITION_FAILED` rather than ordinal failures.
+Browsers are not actually obliged to put pages in BFCache after navigations, so
+BFCache WPTs shouldn't result in `FAILED` if it expects a certain case to be
+supported by BFCache. But, it is still useful to test those cases in the
+browsers that do support BFCache for that case.
+
+To distinguish genuine failures from just not using BFCache, we use
+`assert_bfcached()` and `assert_not_bfcached()` which result in `NOTRUN` rather
+than FAILED. that should be put in the expectations for the failing tests
+(instead of marking it as `FAILED` or skipping the test). Even though it's
+marked as `NOTRUN`, we actually run the test, and expect it to not pass the
+precondition (i.e. the test is not BFCached). This means if the test starts
+passing (e.g. if we start BFCaching in the case being tested), we will notice
+that the output changed from `NOTRUN` to `OK`.
