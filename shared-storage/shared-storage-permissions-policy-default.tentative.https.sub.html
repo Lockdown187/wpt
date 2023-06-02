@@ -26,7 +26,26 @@
           expect_feature_available_default);
     }, header + ' allows sharedStorage in cross-origin iframes.');
 
-    // TODO(crbug.com/1434529): Add tests with
-    // `fetch(<url>, {sharedStorageWritable: true})`.
+    const same_origin_writable_url =
+      '/shared-storage/resources/shared-storage-write.py';
+    const cross_origin_writable_url =
+      'https://{{domains[www]}}:{{ports[https][0]}}' +
+      same_origin_writable_url;
+
+    promise_test(async t => {
+      let response = await fetch(same_origin_writable_url,
+                                 {sharedStorageWritable: true});
+      let shared_storage_writable_header = await response.text();
+      assert_equals(shared_storage_writable_header, "?1");
+    }, header + 'allows the \'Shared-Storage-Writable\' header to be sent '
+              + 'for the same-origin shared storage fetch request.');
+
+    promise_test(async t => {
+      let response = await fetch(cross_origin_writable_url,
+                                 {sharedStorageWritable: true});
+      let shared_storage_writable_header = await response.text();
+      assert_equals(shared_storage_writable_header, "?1");
+    }, header + 'allows the \'Shared-Storage-Writable\' header to be sent '
+              + 'for the cross-origin shared storage fetch request.');
   </script>
 </body>
