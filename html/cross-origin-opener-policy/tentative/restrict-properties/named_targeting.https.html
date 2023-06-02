@@ -22,6 +22,9 @@ async function createCoopRestrictPropertiesPopup(name) {
   send(popupToken, `send('${replyToken}', 'Done loading')`);
   assert_equals(await receive(replyToken), 'Done loading');
 
+  // Force the name to be set, even if it was cleared.
+  send(popupToken, `window.name = '${name}'`);
+
   return popup;
 }
 
