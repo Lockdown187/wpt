@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title> CSS Scroll Snap 2 Test: scroll-start-*</title>
+  <link rel="help" href="https://drafts.csswg.org/css-scroll-snap-2/#scroll-start">
+  <script src="/resources/testharness.js"></script>
+  <script src="/resources/testharnessreport.js"></script>
+</head>
+<style>
+  .spacer {
+    width: 500px;
+    height: 500px;
+    border: solid 1px green;
+  }
+  .scroller {
+    width: 100px;
+    height: 100px;
+    border: solid 1px black;
+    overflow: scroll;
+    writing-mode:vertical-lr;
+  }
+</style>
+<body>
+  <div id="scroller" class="scroller">
+    <div class="spacer"></div>
+  </div>
+</body>
+<script>
+  let scroller = document.getElementById("scroller");
+  const max_horizontal_scroll_offset = scroller.scrollWidth -
+    scroller.clientWidth;
+  const max_vertical_scroll_offset = scroller.scrollHeight -
+    scroller.clientHeight;
+  let test_cases = [
+    {
+      scroll_start: "100px 200px",
+      expectation: {
+        scrollTop: 200,
+        scrollLeft: 100,
+        msg: "scroll-start: <length> sets initial scroll position",
+        approx: false
+      }
+    },
+    {
+      scroll_start: "25% 75%",
+      expectation: {
+        scrollTop: 0.75 * max_vertical_scroll_offset,
+        scrollLeft:  0.25 * max_horizontal_scroll_offset,
+        msg: "scroll-start: <percent> sets initial scroll position",
+        approx: true
+      }
+    },
+    {
+      scroll_start: "calc(50px) calc(75px)",
+      expectation: {
+        scrollTop: 75,
+        scrollLeft: 50,
+        msg: "scroll-start: <calc> sets initial scroll position",
+        approx: false
+      }
+    },
+    {
+      scroll_start: "start",
+      expectation: {
+        scrollTop: 0,
+        scrollLeft: 0,
+        msg: "scroll-start: start sets initial scroll position",
+        approx: false
+      }
+    },
+    {
+      scroll_start: "center center",
+      expectation: {
+        scrollTop: 0.5 * max_vertical_scroll_offset,
+        scrollLeft: 0.5 * max_horizontal_scroll_offset,
+        msg: "scroll-start: center sets initial scroll position",
+        approx: true
+      }
+    },
+    {
+      scroll_start: "end end",
+      expectation: {
+        scrollTop: max_vertical_scroll_offset,
+        scrollLeft: max_horizontal_scroll_offset,
+        msg: "scroll-start: end sets initial scroll position",
+        approx: false
+      }
+    },
+    {
+      scroll_start: "top top",
+      expectation: {
+        scrollTop: 0,
+        scrollLeft: 0, // nop
+        msg: "scroll-start: top sets initial scroll position",
+        approx: false
+      }
+    },
+    {
+      scroll_start: "bottom bottom",
+      expectation: {
+        scrollTop: max_vertical_scroll_offset,
+        scrollLeft: 0, // nop
+        msg: "scroll-start: bottom sets initial scroll position",
+        approx: false
+      }
+    },
+    {
+      scroll_start: "left left",
+      expectation: {
+        scrollTop: 0, // nop
+        scrollLeft: 0,
+        msg: "scroll-start: left sets initial scroll position",
+        approx: false
+      }
+    },
+    {
+      scroll_start: "right right",
+      expectation: {
+        scrollTop: 0, // nop
+        scrollLeft: max_horizontal_scroll_offset,
+        msg: "scroll-start: right sets initial scroll position",
+        approx: false
+      }
+    },
+    {
+      scroll_start: "1000px 2000px",
+      expectation: {
+        scrollTop: max_vertical_scroll_offset,
+        scrollLeft: max_horizontal_scroll_offset,
+        msg: "scroll-start is clamped",
+        approx: false
+      }
+    }
+  ];
+
+  async function resetScroller(scroll_start) {
+    scroller.style.display = "none";
+    assert_equals(getComputedStyle(scroller)["display"], "none");
+
+    scroller.style["scroll-start"] = scroll_start;
+
+    scroller.style.display = "block";
+    assert_equals(getComputedStyle(scroller)["display"], "block");
+    assert_equals(scroller.style.scrollStart, scroll_start);
+  }
+
+  async function test_scroll_start(scroll_start, expectation) {
+    await resetScroller(scroll_start);
+
+    if (expectation.approx) {
+      assert_approx_equals(scroller.scrollTop, expectation.scrollTop, 1, expectation.msg);
+      assert_approx_equals(scroller.scrollLeft, expectation.scrollLeft, 1, expectation.msg);
+    } else {
+      assert_equals(scroller.scrollTop, expectation.scrollTop, expectation.msg);
+      assert_equals(scroller.scrollLeft, expectation.scrollLeft, expectation.msg);
+    }
+  }
+
+  promise_test(async () => {
+    for (let test_case of test_cases) {
+      await test_scroll_start(test_case.scroll_start,
+        test_case.expectation);
+    }
+  });
+</script>

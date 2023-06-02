@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title> CSS Scroll Snap 2 Test: scroll-start-*</title>
+  <link rel="help" href="https://drafts.csswg.org/css-scroll-snap-2/#scroll-start">
+  <script src="/resources/testharness.js"></script>
+  <script src="/resources/testharnessreport.js"></script>
+</head>
+<style>
+  #scroller {
+    height: 100px;
+    width: 100px;
+    scroll-start: 100px 200px;
+    border: solid 1px black;
+    overflow: scroll;
+  }
+
+  .spacer {
+    width: 200vw;
+    height: 200vh;
+    border: solid 1px green;
+  }
+</style>
+
+<body>
+  <div id="scroller">
+    <div class="spacer"></div>
+  </div>
+</body>
+<script>
+  promise_test(async (t) => {
+    // This tests that toggling the display of a scroller from none to block
+    // sets the scroll position to scroll-start (since display:none to
+    // display:block causes the scroller to be laid out again.)
+    assert_equals(scroller.scrollTop, 100,
+      "scroll-start: <length> sets initial vertical scroll position");
+    assert_equals(scroller.scrollLeft, 200,
+      "scroll-start: <length> sets initial horizontal scroll position");
+
+    // Scroll to somewhere other than scroll-start position.
+    scroller.scrollTop = 200;
+    scroller.scrollLeft = 100;
+    await requestAnimationFrame(() => { });
+    assert_equals(scroller.scrollTop, 200,
+    "vertical scroll position is programmatically adjusted");
+    assert_equals(scroller.scrollLeft, 100,
+    "horizontal scroll position is programmatically adjusted");
+
+    scroller.style.display = "none";
+    assert_equals(getComputedStyle(scroller)["display"], "none");
+    scroller.style.display = "block";
+    assert_equals(getComputedStyle(scroller)["display"], "block");
+
+    // Verify that we are again scrolled to the position specified by scroll-start.
+    assert_equals(scroller.scrollTop, 100,
+      "after re-layout vertical scroll position is set by scroll-start");
+    assert_equals(scroller.scrollLeft, 200,
+      "after re-layout horizontal scroll position is set by scroll-start");
+  });
+</script>
