@@ -1,0 +1,13 @@
+<!doctype html>
+<link rel="help" href="https://crbug.com/1448846">
+<body>
+<script>
+function crash() {
+  "use strict";
+  const form = document.createElement('form');
+  form.name = 'location';
+  document.body.appendChild(form);
+}
+crash();
+</script>
+</body>
