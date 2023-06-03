@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<meta name="timeout" content="long">
+<!-- user agents are not required to support open features other than `noopener`
+     and on some platforms position and size features don't make sense -->
+<meta name="flags" content="may">
+<title>Window Management test: Fullscreen Companion Window</title>
+<link rel="help" href="https://w3c.github.io/window-placement/">
+Tests use of multi-screen details to request fullscreen and open a pop-up
+'companion' window in the same user activation.<br>
+The host device must have 2+ screens to yield meaningful results.<br><br>
+<button id="closeButton" onclick="closeAll">Close any open popups</button><br>
+<input id="autoClose" type="checkbox" checked=true>Auto-close popups</input>
+<ul id="list"></ul>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="/resources/testdriver.js"></script>
+<script src="/resources/testdriver-vendor.js"></script>
+<script src="resources/helpers.js"></script>
+<script>
+'use strict';
+
+let popups = [];
+function closeAll() {
+  popups.forEach(p => p.close());
+}
+
+// Open a popup on screen `s` and return the popup.
+async function openPopupOnScreen(s) {
+  const left = s.availLeft + Math.floor(s.availWidth / 2) - 150;
+  const top = s.availTop + Math.floor(s.availHeight / 2) - 50;
+  const f = `left=${left},top=${top},width=300,height=100`;
+  log(`Opening a popup with features '${f}' targeting ${screenLog(s)}`);
+  return window.open('/resources/blank.html', '', f);
+}
+
+promise_test(async setUpTest => {
+  await setUpWindowManagement(setUpTest);
+  const screens = window.screenDetails.screens;
+  for (const [i, screenA] of screens.entries()) {
+    const screenB = screens[(i + 1) % screens.length];
+    let name = `Fullscreen on '${screenA.label}'; popup on '${screenB.label}'`;
+    promise_test(async test => {
+      await buttonClick(test, name);
+      await document.documentElement.requestFullscreen({ screen: screenA });
+      const popup = await openPopupOnScreen(screenB);    
+      // Expect the popup to open iff multiple screens are available.
+      const expectPopup = screens.length > 1;
+      assert_equals(!!popup, expectPopup, 'Popup reference');
+      if (!!popup) {
+        assert_equals(!popup.closed, expectPopup, 'Popup open');
+        popups.push(popup);
+        if (autoClose.checked)
+          test.add_cleanup(closeAll);
+      }
+    }, name);
+  }
+}, 'Request fullscreen and open a pop-up from one transient activation.');
+</script>
